@@ -3,13 +3,17 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Dict, List
 
-from pymongo import MongoClient
-
 from rag_pipeline.schemas import DocumentRoot, H1Node, H2Node, TreeIndex
 
 
 class MongoTreeStore:
     def __init__(self, uri: str, db_name: str = "legal_rag") -> None:
+        try:
+            from pymongo import MongoClient
+        except ModuleNotFoundError as exc:
+            raise ModuleNotFoundError(
+                "pymongo is required for MongoTreeStore. Install with `pip install pymongo`."
+            ) from exc
         self.client = MongoClient(uri)
         self.db = self.client[db_name]
         self.documents = self.db.documents
@@ -78,4 +82,3 @@ class MongoTreeStore:
             lookup[h1_id] = record
 
         return TreeIndex(h1_nodes=h1_nodes, h2_nodes=h2_nodes, lookup=lookup)
-

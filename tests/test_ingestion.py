@@ -48,6 +48,27 @@ class IngestionTests(unittest.TestCase):
             os.environ.clear()
             os.environ.update(original)
 
+    def test_fixture_markdown_ingestion(self) -> None:
+        base_dir = os.path.join(os.path.dirname(__file__), "fixtures")
+        doc1 = os.path.join(base_dir, "doc1.md")
+        doc2 = os.path.join(base_dir, "doc2.md")
+
+        with open(doc1, "r", encoding="utf-8") as handle:
+            tree1 = parse_markdown_to_tree(
+                handle.read(),
+                IngestionConfig(doc_id="doc_fixture_1", pdf_name="doc1.pdf"),
+            )
+        with open(doc2, "r", encoding="utf-8") as handle:
+            tree2 = parse_markdown_to_tree(
+                handle.read(),
+                IngestionConfig(doc_id="doc_fixture_2", pdf_name="doc2.pdf"),
+            )
+
+        self.assertEqual(len(tree1.h1_nodes), 1)
+        self.assertEqual(len(tree1.h2_nodes), 2)
+        self.assertEqual(len(tree2.h1_nodes), 1)
+        self.assertEqual(len(tree2.h2_nodes), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

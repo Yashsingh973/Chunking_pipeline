@@ -4,9 +4,6 @@ import os
 from dataclasses import dataclass
 from typing import Optional
 
-import requests
-from dotenv import load_dotenv
-
 from rag_pipeline.utils import summarize_text
 
 
@@ -26,6 +23,10 @@ class LlmSummarizer:
         self.config = config
 
     def summarize(self, text: str) -> str:
+        try:
+            import requests
+        except ModuleNotFoundError:
+            return summarize_text(text)
         prompt = self.config.summary_template.format(text=text)
         headers = {"Content-Type": "application/json"}
         if self.config.api_key:
@@ -56,7 +57,12 @@ class LlmSummarizer:
 
 
 def load_summarizer_from_env() -> Optional[LlmSummarizer]:
-    load_dotenv()
+    try:
+        from dotenv import load_dotenv
+    except ModuleNotFoundError:
+        load_dotenv = None
+    if load_dotenv:
+        load_dotenv()
     api_url = os.getenv("LLM_API_URL")
     if not api_url:
         return None
@@ -75,4 +81,3 @@ def load_summarizer_from_env() -> Optional[LlmSummarizer]:
         summary_template=template,
     )
     return LlmSummarizer(config)
-
