@@ -38,6 +38,29 @@ class IngestionTests(unittest.TestCase):
         self.assertEqual(len(tree.h1_nodes), 1)
         self.assertEqual(len(tree.h2_nodes), 2)
 
+    def test_h2_pages_follow_nearest_preceding_markers(self) -> None:
+        markdown = (
+            "# Title\n"
+            "[[PAGE 1]]\n"
+            "Intro text.\n"
+            "## Section A\n"
+            "A text.\n"
+            "## Section B\n"
+            "[[PAGE 2]]\n"
+            "B text.\n"
+            "## Section C\n"
+            "C text.\n"
+        )
+        tree = parse_markdown_to_tree(
+            markdown,
+            IngestionConfig(doc_id="doc_03", pdf_name="doc.pdf"),
+        )
+
+        sections = {node.head: node.pages for node in tree.h2_nodes.values()}
+        self.assertEqual(sections["Section A"], [1])
+        self.assertEqual(sections["Section B"], [2])
+        self.assertEqual(sections["Section C"], [2])
+
     def test_load_summarizer_from_env_none_without_url(self) -> None:
         original = dict(os.environ)
         try:
