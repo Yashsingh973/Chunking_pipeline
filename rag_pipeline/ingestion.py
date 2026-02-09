@@ -68,6 +68,9 @@ def parse_markdown_to_tree(markdown_text: str, config: IngestionConfig) -> TreeI
         ]
 
         if h2_headings:
+            first_h2_idx = h2_headings[0][0]
+            pre_h2_block = lines[h1_start_idx + 1 : first_h2_idx]
+            last_pages = _extract_pages("\n".join(pre_h2_block).strip())
             for h2_start_idx, h2_head in h2_headings:
                 h2_end_idx = next(
                     (idx for idx, _ in h2_headings if idx > h2_start_idx),
@@ -75,7 +78,11 @@ def parse_markdown_to_tree(markdown_text: str, config: IngestionConfig) -> TreeI
                 )
                 h2_block = lines[h2_start_idx + 1 : h2_end_idx]
                 h2_text = "\n".join(h2_block).strip()
-                h2_pages = _extract_pages(h2_text) or h1_pages
+                h2_pages = _extract_pages(h2_text)
+                if h2_pages:
+                    last_pages = h2_pages
+                else:
+                    h2_pages = last_pages
                 h2_counter += 1
                 h2_id = f"{config.h2_prefix}_{h1_counter:02d}_{h2_counter:02d}"
                 h2_nodes[h2_id] = H2Node(
